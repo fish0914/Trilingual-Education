@@ -218,8 +218,23 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // =================================================================
+        // 【重要設定】
+        // 已填入您的 Firebase 專案設定
+        // =================================================================
+        const manualFirebaseConfig = {
+            apiKey: "AIzaSyAHTx94zX8cXxf9hBtHRQ_CmNqFvFBWYeQ",
+            authDomain: "trilingual-85fe6.firebaseapp.com",
+            projectId: "trilingual-85fe6",
+            storageBucket: "trilingual-85fe6.firebasestorage.app",
+            messagingSenderId: "939793055372",
+            appId: "1:939793055372:web:aaac421113763b65d885a9",
+            measurementId: "G-NTLTR45WS6"
+        };
+        // =================================================================
+
         // --- 1. Global State Definition (Before Init) ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-project-default';
         const ADMIN_PASSWORD = "mdjhmdjh";
         
         let db = null;
@@ -231,8 +246,7 @@
         let isAdminLoggedIn = false;
 
         // --- 2. Define UI Functions FIRST (Attached to Window) ---
-        // This ensures buttons work even if Firebase init fails later
-
+        
         function escapeHtml(text) {
             if (!text) return "";
             return text
@@ -354,7 +368,7 @@
         window.handleUpload = async (e) => {
             e.preventDefault();
             if (!db) {
-                alert("資料庫尚未連線，請重新整理頁面。");
+                alert("資料庫尚未連線。\n\n請檢查 HTML 程式碼中的 `manualFirebaseConfig` 是否已填入正確的 Firebase 設定。\n(您目前可能在 GitHub Pages 上運行，需要手動填入 Key)");
                 return;
             }
             const btn = document.getElementById('btn-submit');
@@ -476,7 +490,6 @@
             const galleryGrid = document.getElementById('gallery-grid');
             const galleryEmpty = document.getElementById('gallery-empty');
             
-            // Hide loader if we have data or if auth failed (prevent infinite loading)
             if (currentProjects.length > 0 || !currentUser) {
                 galleryLoader.classList.add('hidden');
             }
@@ -484,7 +497,7 @@
             if (filtered.length === 0) {
                 galleryGrid.classList.add('hidden');
                 if (!galleryLoader.classList.contains('hidden')) {
-                     // still loading, don't show empty yet
+                     // still loading
                 } else {
                     galleryEmpty.classList.remove('hidden');
                 }
@@ -556,7 +569,38 @@
 
         // --- 3. Initialize Firebase Safely ---
         try {
-            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            // Priority: Environment Variable > Manual Config > Empty
+            let firebaseConfig = {};
+            
+            if (typeof __firebase_config !== 'undefined') {
+                // Inside Canvas Environment
+                firebaseConfig = JSON.parse(__firebase_config);
+            } else {
+                // Outside Canvas (GitHub Pages)
+                // Check if manual config has been filled
+                const isConfigEmpty = !manualFirebaseConfig.apiKey || manualFirebaseConfig.apiKey === "";
+                
+                if (isConfigEmpty) {
+                    // Show instructional error on UI instead of just console
+                    document.getElementById('gallery-loader').innerHTML = `
+                        <div class="text-center p-6 max-w-lg mx-auto bg-red-50 rounded-xl border border-red-200">
+                            <i data-lucide="alert-triangle" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
+                            <p class="text-red-600 font-bold mb-2 text-lg">⚠️ 尚未設定資料庫連線</p>
+                            <p class="text-sm text-red-500 mb-4 leading-relaxed">此網頁目前運行於外部環境 (如 GitHub Pages)，無法自動取得資料庫設定。<br>請手動填入 Firebase API Key。</p>
+                            <div class="bg-white p-3 rounded border border-red-100 text-left text-xs text-slate-500 font-mono">
+                                1. 使用記事本開啟此 html 檔案<br>
+                                2. 搜尋 "manualFirebaseConfig"<br>
+                                3. 填入 Firebase Console 中的設定值
+                            </div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    throw new Error("Missing Manual Firebase Config on External Environment");
+                } else {
+                    firebaseConfig = manualFirebaseConfig;
+                }
+            }
+
             const app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
@@ -580,7 +624,6 @@
                 if (user) {
                     setupRealtimeListener();
                 } else {
-                    // Stop loader if auth fails
                     document.getElementById('gallery-loader').classList.add('hidden');
                     document.getElementById('gallery-empty').classList.remove('hidden');
                 }
@@ -601,8 +644,10 @@
 
         } catch (e) {
             console.error("Firebase Initialization Failed:", e);
-            // Even if Firebase fails, UI setup is already done so buttons won't throw errors
-            document.getElementById('gallery-loader').innerHTML = `<p class="text-red-500">無法連線至資料庫 (${e.message})</p>`;
+            // If error wasn't handled by the specific check above
+            if (!document.getElementById('gallery-loader').innerHTML.includes('尚未設定資料庫連線')) {
+                 document.getElementById('gallery-loader').innerHTML = `<p class="text-red-500">初始化失敗：${e.message}</p>`;
+            }
         }
 
         // Initial Icon Render
