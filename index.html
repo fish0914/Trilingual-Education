@@ -9,32 +9,12 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Custom Scrollbar for cleaner look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
@@ -48,7 +28,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">三語計畫成果展</h1>
-                    <p class="text-xs text-slate-500 font-medium">SDGs科技創作 x 資訊專題</p>
+                    <p class="text-xs text-slate-500 font-medium">SDGs科技創作 x 資訊專題 (雲端連線版)</p>
                 </div>
             </div>
             
@@ -82,7 +62,7 @@
         <div id="view-gallery" class="block">
             <div id="gallery-loader" class="flex flex-col items-center justify-center h-64 text-slate-400">
                 <i data-lucide="loader-2" class="animate-spin w-8 h-8 text-blue-600 mb-4"></i>
-                <p>載入成果資料中...</p>
+                <p>正在連線至資料庫...</p>
             </div>
             <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
                 <!-- Project cards will be injected here -->
@@ -219,16 +199,18 @@
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =================================================================
-        // 重要：在 GitHub Pages 使用時，請填寫下方的 manualFirebaseConfig
+        // 【重要：請在此處貼上您的 Firebase Config】
+        // 請將下方大括號內的內容替換為您從 Firebase Console 複製的程式碼
         // =================================================================
-        const manualFirebaseConfig = {
-            apiKey: "",
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
-        };
+     const firebaseConfig = {
+  apiKey: "AIzaSyC1Z2nRBGkPwJTM1dZFvCyLqji50RcHwbo",
+  authDomain: "education-e16d3.firebaseapp.com",
+  projectId: "education-e16d3",
+  storageBucket: "education-e16d3.firebasestorage.app",
+  messagingSenderId: "748864808320",
+  appId: "1:748864808320:web:459ab4958dc61385c3cd65",
+  measurementId: "G-TX9CJ5BJ6E"
+};
         // =================================================================
 
         // --- 1. Global State Definition (Before Init) ---
@@ -366,7 +348,7 @@
         window.handleUpload = async (e) => {
             e.preventDefault();
             if (!db) {
-                alert("資料庫尚未連線。\n\n請檢查程式碼中的 `manualFirebaseConfig` 是否已填入正確的 Firebase 設定。");
+                alert("資料庫尚未連線。\n\n請檢查 HTML 程式碼中的 `manualFirebaseConfig` 是否已填入正確的 Firebase 設定。\n(您目前可能在 GitHub Pages 上運行，需要手動填入 Key)");
                 return;
             }
             const btn = document.getElementById('btn-submit');
@@ -575,58 +557,78 @@
                 firebaseConfig = JSON.parse(__firebase_config);
             } else {
                 // Outside Canvas (GitHub Pages)
-                if (!manualFirebaseConfig.apiKey || manualFirebaseConfig.apiKey === "") {
-                    // Config is missing
-                    console.warn("⚠️ Firebase Config is missing. Please fill 'manualFirebaseConfig' in the code.");
+                // Check if manual config has been filled
+                const isConfigEmpty = !manualFirebaseConfig.apiKey || manualFirebaseConfig.apiKey === "" || manualFirebaseConfig.apiKey === "您的apiKey";
+                
+                if (isConfigEmpty) {
+                    // Show instructional error on UI instead of just console
+                    document.getElementById('gallery-loader').innerHTML = `
+                        <div class="text-center p-6 max-w-lg mx-auto bg-red-50 rounded-xl border border-red-200">
+                            <i data-lucide="alert-triangle" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
+                            <p class="text-red-600 font-bold mb-2 text-lg">⚠️ 尚未設定資料庫連線</p>
+                            <p class="text-sm text-red-500 mb-4 leading-relaxed">此網頁目前運行於外部環境 (如 GitHub Pages)，無法自動取得資料庫設定。<br>請手動填入 Firebase API Key。</p>
+                            <div class="bg-white p-3 rounded border border-red-100 text-left text-xs text-slate-500 font-mono">
+                                1. 使用記事本開啟此 html 檔案<br>
+                                2. 搜尋 "manualFirebaseConfig"<br>
+                                3. 填入 Firebase Console 中的設定值
+                            </div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    // We don't throw error here to allow code to run, but functionality will be limited
                 } else {
                     firebaseConfig = manualFirebaseConfig;
                 }
             }
 
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
+            if (firebaseConfig.apiKey) {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
 
-            // Auth
-            async function initAuth() {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                // Auth
+                async function initAuth() {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Auth Error:", error);
                     }
-                } catch (error) {
-                    console.error("Auth Error:", error);
                 }
-            }
-            initAuth();
+                initAuth();
 
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    setupRealtimeListener();
-                } else {
-                    document.getElementById('gallery-loader').classList.add('hidden');
-                    document.getElementById('gallery-empty').classList.remove('hidden');
-                }
-            });
-
-            function setupRealtimeListener() {
-                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'student_projects'));
-                onSnapshot(q, (snapshot) => {
-                    const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    loaded.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                    currentProjects = loaded;
-                    renderApp();
-                }, (err) => {
-                    console.error("Data fetch error", err);
-                    document.getElementById('gallery-loader').classList.add('hidden');
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        setupRealtimeListener();
+                    } else {
+                        document.getElementById('gallery-loader').classList.add('hidden');
+                        document.getElementById('gallery-empty').classList.remove('hidden');
+                    }
                 });
+
+                function setupRealtimeListener() {
+                    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'student_projects'));
+                    onSnapshot(q, (snapshot) => {
+                        const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                        loaded.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                        currentProjects = loaded;
+                        renderApp();
+                    }, (err) => {
+                        console.error("Data fetch error", err);
+                        document.getElementById('gallery-loader').classList.add('hidden');
+                    });
+                }
             }
 
         } catch (e) {
             console.error("Firebase Initialization Failed:", e);
-            document.getElementById('gallery-loader').innerHTML = `<p class="text-red-500">初始化失敗：請檢查 Firebase 設定</p>`;
+            if (!document.getElementById('gallery-loader').innerHTML.includes('尚未設定資料庫連線')) {
+                 document.getElementById('gallery-loader').innerHTML = `<p class="text-red-500">初始化失敗：${e.message}</p>`;
+            }
         }
 
         // Initial Icon Render
