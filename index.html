@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三語計畫成果展</title>
+    <title>三語計畫成果展 (系統除錯版)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -17,7 +17,7 @@
         .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pb-64">
 
     <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-slate-200">
@@ -46,7 +46,7 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         
-        <!-- Filter Buttons (Only affects Gallery View now) -->
+        <!-- Filter Buttons -->
         <div id="filter-container" class="mb-8 flex justify-center transition-all duration-300">
             <div class="inline-flex rounded-md shadow-sm" role="group">
                 <button type="button" onclick="setFilter('sdgs')" id="btn-filter-sdgs" class="px-6 py-3 text-sm font-medium border rounded-l-lg focus:z-10 focus:ring-2 transition-colors bg-blue-600 text-white border-blue-600">
@@ -64,23 +64,26 @@
                 <i data-lucide="loader-2" class="animate-spin w-8 h-8 text-blue-600 mb-4"></i>
                 <p>正在連線至資料庫讀取資料...</p>
             </div>
-            <!-- Error Display Area -->
+            
             <div id="gallery-error" class="hidden text-center py-10">
-                <div class="inline-block p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 max-w-lg">
-                    <p class="font-bold flex items-center justify-center gap-2 mb-2">
-                        <i data-lucide="alert-circle" class="w-5 h-5"></i> 讀取資料失敗
-                    </p>
-                    <p id="gallery-error-msg" class="text-sm">請檢查 Firebase 規則 (Rules) 是否已設為 allow read, write: if true;</p>
+                <div class="inline-block p-6 bg-red-50 text-red-700 rounded-xl border border-red-200 max-w-lg shadow-sm">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <i data-lucide="shield-alert" class="w-8 h-8 text-red-600"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">讀取資料發生錯誤</h3>
+                        <p id="gallery-error-msg" class="text-sm text-red-600 leading-relaxed font-mono text-left"></p>
+                    </div>
                 </div>
             </div>
             
             <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-                <!-- Project cards will be injected here -->
+                <!-- Project cards injected here -->
             </div>
             <div id="gallery-empty" class="hidden text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
                 <i data-lucide="school" class="mx-auto h-12 w-12 text-slate-300"></i>
-                <h3 class="mt-2 text-sm font-semibold text-slate-900">目前此分類尚無成果</h3>
-                <p class="mt-1 text-sm text-slate-500">請切換至「資料上傳」頁面新增學生作品。</p>
+                <h3 class="mt-2 text-sm font-semibold text-slate-900">資料庫讀取成功，但目前沒有資料</h3>
+                <p class="mt-1 text-sm text-slate-500">請嘗試重新上傳一筆資料看看。</p>
             </div>
         </div>
 
@@ -115,7 +118,6 @@
                         </div>
                         
                         <form onsubmit="handleUpload(event)" class="space-y-4">
-                            <!-- Course Type Selection inside Form -->
                             <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                                 <label class="block text-sm font-medium text-slate-700 mb-2">選擇課程分類 *</label>
                                 <div class="flex gap-2">
@@ -152,24 +154,19 @@
                                 
                                 <div>
                                     <label class="block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
-                                        <i data-lucide="youtube" class="w-3 h-3"></i> 影片連結 (URL 或 嵌入代碼)
+                                        <i data-lucide="youtube" class="w-3 h-3"></i> 影片連結
                                     </label>
                                     <input type="text" id="input-video" oninput="updatePreview()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-1 focus:ring-blue-500 font-mono" placeholder="貼上 YouTube 網址 或 <iframe...> 原始碼">
                                     <div id="video-preview-container" class="mt-3 bg-black rounded-lg overflow-hidden aspect-video relative hidden">
                                         <iframe id="video-preview-frame" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                                        <div class="absolute top-2 right-2 bg-black/70 text-white text-[10px] px-2 py-1 rounded pointer-events-none">即時預覽</div>
                                     </div>
-                                    <p id="video-error-msg" class="hidden mt-2 text-[10px] text-red-500 flex items-center gap-1">
-                                        <i data-lucide="alert-triangle" class="w-3 h-3"></i> 無法識別影片 ID，請檢查內容
-                                    </p>
                                 </div>
 
                                 <div>
                                     <label class="block text-xs font-medium text-slate-600 mb-2 flex items-center gap-1">
-                                        <i data-lucide="file-text" class="w-3 h-3"></i> 簡報連結 (Google/Canva)
+                                        <i data-lucide="file-text" class="w-3 h-3"></i> 簡報連結
                                     </label>
                                     <input type="url" id="input-slides" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-1 focus:ring-blue-500" placeholder="Google Slides / Canva 連結">
-                                    <p class="text-[10px] text-slate-400 mt-1">* Canva 請使用「分享」&gt;「嵌入」連結效果最佳</p>
                                 </div>
                             </div>
 
@@ -184,7 +181,7 @@
                 <div class="lg:col-span-2">
                     <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                         <i data-lucide="unlock" class="text-emerald-600 w-4 h-4"></i>
-                        管理員模式：所有已上傳作品 (顯示全部)
+                        管理員模式：已上傳作品 (顯示全部)
                     </h3>
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <ul id="admin-list" class="divide-y divide-slate-100">
@@ -197,10 +194,13 @@
         </div>
     </main>
     
-    <!-- Connection Status Indicator (Footer) -->
-    <div class="fixed bottom-2 left-2 bg-white/90 backdrop-blur border border-slate-200 rounded-full px-3 py-1 text-[10px] shadow-sm z-50 flex items-center gap-2 text-slate-500" id="status-indicator">
-        <div class="w-2 h-2 rounded-full bg-slate-300" id="status-dot"></div>
-        <span id="status-text">初始化中...</span>
+    <!-- DEBUG CONSOLE (Diagnostic Tool) -->
+    <div class="fixed bottom-0 left-0 w-full h-48 bg-slate-900 text-green-400 font-mono text-xs overflow-y-auto p-4 z-[9999] border-t-4 border-slate-700 shadow-2xl opacity-95">
+        <div class="flex justify-between items-center mb-2 sticky top-0 bg-slate-900 pb-2 border-b border-slate-800">
+            <span class="font-bold text-white flex items-center gap-2"><i data-lucide="terminal" class="w-3 h-3"></i> 系統診斷日誌 (System Diagnostics)</span>
+            <button onclick="document.getElementById('debug-log').innerHTML=''" class="px-2 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">清除日誌</button>
+        </div>
+        <div id="debug-log" class="space-y-1"></div>
     </div>
 
     <!-- Modal -->
@@ -208,22 +208,15 @@
         <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh] scale-95 transition-transform duration-300" id="modal-content">
             <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
                 <div>
-                    <h2 id="modal-title" class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <!-- Icon + Title -->
-                    </h2>
+                    <h2 id="modal-title" class="text-lg font-bold text-slate-900 flex items-center gap-2"></h2>
                     <p id="modal-author" class="text-sm text-slate-500"></p>
                 </div>
                 <button onclick="closeModal()" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-slate-900">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
-            
-            <div id="modal-body" class="flex-1 bg-slate-100 relative w-full overflow-hidden flex flex-col">
-                <!-- Iframe or Content -->
-            </div>
-
-            <div id="modal-desc" class="p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200 shrink-0">
-            </div>
+            <div id="modal-body" class="flex-1 bg-slate-100 relative w-full overflow-hidden flex flex-col"></div>
+            <div id="modal-desc" class="p-4 bg-slate-50 text-sm text-slate-600 border-t border-slate-200 shrink-0"></div>
         </div>
     </div>
 
@@ -233,10 +226,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =================================================================
-        // 【重要設定】
-        // 已填入您的 Firebase 專案設定
-        // =================================================================
+        // --- Firebase Config (User Provided) ---
         const manualFirebaseConfig = {
             apiKey: "AIzaSyAHTx94zX8cXxf9hBtHRQ_CmNqFvFBWYeQ",
             authDomain: "trilingual-85fe6.firebaseapp.com",
@@ -246,9 +236,7 @@
             appId: "1:939793055372:web:aaac421113763b65d885a9",
             measurementId: "G-NTLTR45WS6"
         };
-        // =================================================================
 
-        // --- 1. Global State Definition (Before Init) ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-project-default';
         const ADMIN_PASSWORD = "mdjhmdjh";
         
@@ -256,102 +244,71 @@
         let auth = null;
         let currentUser = null;
         let currentProjects = [];
-        let currentFilter = 'sdgs'; // 'sdgs' or 'info'
-        let currentTab = 'gallery';
+        let currentFilter = 'sdgs';
         let isAdminLoggedIn = false;
 
-        // --- 2. Define UI Functions FIRST (Attached to Window) ---
-        
-        function escapeHtml(text) {
-            if (!text) return "";
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-        
-        // Status Indicator Helper
-        function updateStatus(status, message) {
-            const dot = document.getElementById('status-dot');
-            const text = document.getElementById('status-text');
-            text.textContent = message;
-            
-            if (status === 'success') {
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-            } else if (status === 'error') {
-                dot.className = 'w-2 h-2 rounded-full bg-red-500';
-                text.classList.add('text-red-600');
-            } else {
-                dot.className = 'w-2 h-2 rounded-full bg-amber-400';
-            }
+        // --- Logger ---
+        function log(msg, type = 'info') {
+            const box = document.getElementById('debug-log');
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : (type === 'success' ? 'text-emerald-400' : 'text-slate-300');
+            const icon = type === 'error' ? '❌' : (type === 'success' ? '✅' : 'ℹ️');
+            box.innerHTML += `<div class="${color}">[${time}] ${icon} ${msg}</div>`;
+            box.scrollTop = box.scrollHeight;
         }
 
-        // Helper: URL Parser
+        // --- Helper Functions ---
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
         window.getEmbedUrl = (inputString) => {
             if (!inputString) return '';
             let cleanUrl = inputString.trim();
-            
             if (cleanUrl.includes('<iframe')) {
                 const srcMatch = cleanUrl.match(/src\s*=\s*["']([^"']+)["']/);
-                if (srcMatch && srcMatch[1]) {
-                    cleanUrl = srcMatch[1];
-                } else {
-                    return ''; 
-                }
+                if (srcMatch && srcMatch[1]) cleanUrl = srcMatch[1];
             }
-
             try {
                 const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/|shorts\/)|youtu\.be\/)([^"&?\/\s]{11})/;
                 const match = cleanUrl.match(youtubeRegex);
-                if (match && match[1]) {
-                    return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&playsinline=1`;
-                }
-                if (cleanUrl.includes('drive.google.com')) {
-                    return cleanUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
-                }
+                if (match && match[1]) return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&playsinline=1`;
+                if (cleanUrl.includes('drive.google.com')) return cleanUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
                 if (cleanUrl.includes('vimeo.com')) {
                     const parts = cleanUrl.split('/');
                     const possibleId = parts[parts.length-1].split('?')[0];
                     if (!isNaN(possibleId)) return `https://player.vimeo.com/video/${possibleId}`;
                 }
-                if (cleanUrl.startsWith('<')) return ''; 
                 return cleanUrl;
-            } catch (e) {
-                return '';
-            }
+            } catch (e) { return ''; }
         };
 
-        // Tab Switching
+        // --- UI Logic ---
         window.switchTab = (tab) => {
-            currentTab = tab;
             const btnGallery = document.getElementById('btn-tab-gallery');
             const btnAdmin = document.getElementById('btn-tab-admin');
             const filterContainer = document.getElementById('filter-container');
-            
             if (tab === 'gallery') {
                 btnGallery.className = "px-4 py-2 text-sm font-medium rounded-md transition-all bg-white text-blue-600 shadow-sm flex items-center gap-2";
                 btnAdmin.className = "px-4 py-2 text-sm font-medium rounded-md transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2";
                 document.getElementById('view-gallery').classList.remove('hidden');
                 document.getElementById('view-admin').classList.add('hidden');
-                filterContainer.classList.remove('hidden'); // Show filters in gallery
+                filterContainer.classList.remove('hidden');
             } else {
                 btnGallery.className = "px-4 py-2 text-sm font-medium rounded-md transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2";
                 btnAdmin.className = "px-4 py-2 text-sm font-medium rounded-md transition-all bg-white text-blue-600 shadow-sm flex items-center gap-2";
                 document.getElementById('view-gallery').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
-                filterContainer.classList.add('hidden'); // Hide filters in admin (showing all)
+                filterContainer.classList.add('hidden');
             }
             renderApp();
         };
 
-        // Filter Switching
         window.setFilter = (filter) => {
             currentFilter = filter;
             const btnSdgs = document.getElementById('btn-filter-sdgs');
             const btnInfo = document.getElementById('btn-filter-info');
-            
             if (filter === 'sdgs') {
                 btnSdgs.className = "px-6 py-3 text-sm font-medium border rounded-l-lg focus:z-10 focus:ring-2 transition-colors bg-blue-600 text-white border-blue-600";
                 btnInfo.className = "px-6 py-3 text-sm font-medium border rounded-r-lg focus:z-10 focus:ring-2 transition-colors bg-white text-slate-700 border-slate-300 hover:bg-slate-50";
@@ -362,62 +319,38 @@
             renderApp();
         };
 
-        // Admin Functions
         window.handleAdminLogin = (e) => {
             e.preventDefault();
-            const pwd = document.getElementById('admin-password').value;
-            if (pwd === ADMIN_PASSWORD) {
+            if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
                 isAdminLoggedIn = true;
                 document.getElementById('admin-password').value = '';
                 renderApp();
-            } else {
-                alert('密碼錯誤');
-            }
+            } else alert('密碼錯誤');
         };
 
-        window.handleAdminLogout = () => {
-            isAdminLoggedIn = false;
-            renderApp();
-        };
+        window.handleAdminLogout = () => { isAdminLoggedIn = false; renderApp(); };
 
         window.updatePreview = () => {
             const val = document.getElementById('input-video').value;
             const embed = window.getEmbedUrl(val);
             const container = document.getElementById('video-preview-container');
             const frame = document.getElementById('video-preview-frame');
-            const errorMsg = document.getElementById('video-error-msg');
-            
-            if (embed) {
-                container.classList.remove('hidden');
-                frame.src = embed;
-                errorMsg.classList.add('hidden');
-            } else {
-                container.classList.add('hidden');
-                frame.src = '';
-                if (val.length > 0) errorMsg.classList.remove('hidden');
-                else errorMsg.classList.add('hidden');
-            }
+            if (embed) { container.classList.remove('hidden'); frame.src = embed; document.getElementById('video-error-msg').classList.add('hidden'); }
+            else { container.classList.add('hidden'); frame.src = ''; if(val.length>0) document.getElementById('video-error-msg').classList.remove('hidden'); }
         };
 
         window.handleUpload = async (e) => {
             e.preventDefault();
-            if (!db) {
-                alert("資料庫尚未連線。請檢查右下角狀態。");
-                return;
-            }
+            if (!db) return alert("資料庫未連線");
+            
             const btn = document.getElementById('btn-submit');
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-4 h-4"></i> 處理中...`;
-            lucide.createIcons();
+            btn.innerHTML = `處理中...`;
             btn.disabled = true;
+            log("開始上傳資料...", 'info');
 
-            // Get selected course type from Radio buttons
             const selectedCourseType = document.querySelector('input[name="courseType"]:checked').value;
-
-            // Timeout Logic (5 seconds)
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error("資料庫連線逾時 (超過 5 秒)。\n\n這通常是因為 Firebase 的「安全性規則 (Rules)」設定錯誤，導致寫入被拒絕但未回傳錯誤。\n\n請前往 Firebase Console > Firestore Database > Rules，將規則改為 allow read, write: if true;")), 5000)
-            );
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("資料庫寫入逾時 (Timeout)。請檢查 Rules 是否設為公開。")), 5000));
 
             try {
                 const data = {
@@ -429,307 +362,176 @@
                     courseType: selectedCourseType,
                     createdAt: serverTimestamp()
                 };
-
-                // Race between upload and timeout
-                await Promise.race([
-                    addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'student_projects'), data),
-                    timeoutPromise
-                ]);
                 
-                // Clear form
+                await Promise.race([addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'student_projects'), data), timeoutPromise]);
+                
+                log("✅ 上傳成功！", 'success');
                 document.getElementById('input-title').value = '';
                 document.getElementById('input-student').value = '';
                 document.getElementById('input-desc').value = '';
                 document.getElementById('input-video').value = '';
                 document.getElementById('input-slides').value = '';
                 updatePreview();
-                
                 alert('發布成功！');
-                
+                window.switchTab('gallery');
             } catch (err) {
+                log(`❌ 上傳失敗: ${err.message}`, 'error');
                 alert('上傳失敗：' + err.message);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                lucide.createIcons();
             }
         };
 
         window.handleDelete = async (id) => {
             if (!db) return;
-            if (confirm('確定要刪除？')) {
+            if (confirm('確定刪除？')) {
                 try {
+                    log(`嘗試刪除文件: ${id}`, 'info');
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'student_projects', id));
+                    log("✅ 刪除成功", 'success');
                 } catch(e) {
+                    log(`❌ 刪除失敗: ${e.message}`, 'error');
                     alert('刪除失敗');
                 }
             }
         };
 
-        // Modal Functions
         window.openModal = (id, type) => {
             const project = currentProjects.find(p => p.id === id);
             if (!project) return;
-            
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            const titleEl = document.getElementById('modal-title');
-            const authorEl = document.getElementById('modal-author');
-            const bodyEl = document.getElementById('modal-body');
-            const descEl = document.getElementById('modal-desc');
-
+            
             overlay.classList.remove('hidden');
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
-
-            titleEl.innerHTML = type === 'video' 
-                ? `<i data-lucide="monitor-play" class="text-red-600 w-5 h-5"></i> ${escapeHtml(project.title)}` 
-                : `<i data-lucide="presentation" class="text-amber-600 w-5 h-5"></i> ${escapeHtml(project.title)}`;
-            authorEl.textContent = `作者：${project.studentName}`;
-            descEl.textContent = project.description || '';
+            setTimeout(() => { overlay.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+            
+            document.getElementById('modal-title').innerHTML = project.title;
+            document.getElementById('modal-author').textContent = `作者：${project.studentName}`;
+            document.getElementById('modal-desc').textContent = project.description || '';
+            const bodyEl = document.getElementById('modal-body');
 
             if (type === 'video') {
                 const embed = window.getEmbedUrl(project.videoUrl);
-                bodyEl.innerHTML = `
-                    <div class="w-full h-full bg-black flex flex-col">
-                        <iframe src="${embed}" class="w-full flex-1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                        <div class="bg-slate-900 border-t border-slate-700 text-white p-4 text-center text-sm flex flex-col items-center gap-2">
-                             <a href="${project.videoUrl}" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors flex items-center gap-2 font-bold text-xs">
-                                <i data-lucide="external-link" class="w-4 h-4"></i> 前往 YouTube 觀看
-                            </a>
-                        </div>
-                    </div>
-                `;
+                bodyEl.innerHTML = `<div class="w-full h-full bg-black flex flex-col"><iframe src="${embed}" class="w-full flex-1" frameborder="0" allowfullscreen></iframe></div>`;
             } else {
                 let slideUrl = project.slidesUrl;
-                // Canva handling
-                if (slideUrl && slideUrl.includes('canva.com') && !slideUrl.includes('embed')) {
-                    // Try to convert view links to embed if possible, or trust the modal iframe
-                    slideUrl = slideUrl.split('?')[0] + '?embed';
-                }
-                
-                bodyEl.innerHTML = `
-                    <div class="w-full h-full bg-slate-100 flex flex-col">
-                        <iframe src="${slideUrl}" class="w-full flex-1 bg-white" frameborder="0" allowfullscreen></iframe>
-                        <div class="bg-slate-200 text-slate-600 p-2 text-center text-xs flex justify-center gap-2">
-                            <a href="${project.slidesUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 underline flex items-center gap-1">
-                                <i data-lucide="external-link" class="w-3 h-3"></i> 在新視窗開啟
-                            </a>
-                        </div>
-                    </div>
-                `;
+                if (slideUrl && slideUrl.includes('canva.com') && !slideUrl.includes('embed')) slideUrl = slideUrl.split('?')[0] + '?embed';
+                bodyEl.innerHTML = `<div class="w-full h-full bg-slate-100 flex flex-col"><iframe src="${slideUrl}" class="w-full flex-1 bg-white" frameborder="0" allowfullscreen></iframe></div>`;
             }
-            lucide.createIcons();
         };
 
         window.closeModal = () => {
             const overlay = document.getElementById('modal-overlay');
             const content = document.getElementById('modal-content');
-            
             overlay.classList.add('opacity-0');
             content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                document.getElementById('modal-body').innerHTML = ''; 
-            }, 300);
+            setTimeout(() => { overlay.classList.add('hidden'); document.getElementById('modal-body').innerHTML = ''; }, 300);
         };
 
-        // Main Render Function
         function renderApp() {
-            // Only filter in Gallery mode
             const filtered = currentProjects.filter(p => p.courseType === currentFilter);
+            const grid = document.getElementById('gallery-grid');
+            const empty = document.getElementById('gallery-empty');
             
-            // 1. Render Gallery
-            const galleryLoader = document.getElementById('gallery-loader');
-            const galleryGrid = document.getElementById('gallery-grid');
-            const galleryEmpty = document.getElementById('gallery-empty');
-            
-            // Hide loader if we have data or empty list loaded
-            if (currentProjects.length > 0 || !galleryLoader.innerHTML.includes('連線至資料庫')) {
-                // Keep loader visible only if initializing
-            }
+            if (!db) return; // Wait for init
 
             if (filtered.length === 0) {
-                galleryGrid.classList.add('hidden');
-                // Only show empty if we are not loading/error
-                if (galleryLoader.classList.contains('hidden') && document.getElementById('gallery-error').classList.contains('hidden')) {
-                    galleryEmpty.classList.remove('hidden');
-                }
+                grid.classList.add('hidden');
+                empty.classList.remove('hidden');
             } else {
-                galleryEmpty.classList.add('hidden');
-                galleryGrid.classList.remove('hidden');
-                galleryGrid.innerHTML = filtered.map(p => `
+                empty.classList.add('hidden');
+                grid.classList.remove('hidden');
+                grid.innerHTML = filtered.map(p => `
                     <div class="group bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full">
                         <div class="h-32 p-6 flex flex-col justify-center items-center text-center ${p.courseType === 'sdgs' ? 'bg-gradient-to-br from-green-50 to-emerald-100' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}">
                             <h3 class="text-lg font-bold text-slate-800 line-clamp-2">${escapeHtml(p.title)}</h3>
-                            <span class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/60 text-slate-600">
-                                <i data-lucide="user" class="w-3 h-3 mr-1"></i> ${escapeHtml(p.studentName)}
-                            </span>
+                            <span class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/60 text-slate-600"><i data-lucide="user" class="w-3 h-3 mr-1"></i> ${escapeHtml(p.studentName)}</span>
                         </div>
                         <div class="p-6 flex-1 flex flex-col">
                             <p class="text-slate-600 text-sm mb-6 flex-1 line-clamp-3">${escapeHtml(p.description || "無專案描述...")}</p>
                             <div class="grid grid-cols-2 gap-3 mt-auto">
-                                <button onclick="openModal('${p.id}', 'video')" ${!p.videoUrl ? 'disabled' : ''} class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${p.videoUrl ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">
-                                    <i data-lucide="monitor-play" class="w-4 h-4"></i> 觀看影片
-                                </button>
-                                <button onclick="openModal('${p.id}', 'slides')" ${!p.slidesUrl ? 'disabled' : ''} class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${p.slidesUrl ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">
-                                    <i data-lucide="presentation" class="w-4 h-4"></i> 閱讀簡報
-                                </button>
+                                <button onclick="openModal('${p.id}', 'video')" ${!p.videoUrl ? 'disabled' : ''} class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${p.videoUrl ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}"><i data-lucide="monitor-play" class="w-4 h-4"></i> 觀看影片</button>
+                                <button onclick="openModal('${p.id}', 'slides')" ${!p.slidesUrl ? 'disabled' : ''} class="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${p.slidesUrl ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}"><i data-lucide="presentation" class="w-4 h-4"></i> 閱讀簡報</button>
                             </div>
                         </div>
                     </div>
                 `).join('');
             }
-
-            // 2. Render Admin (SHOW ALL, NO FILTER)
-            const adminLogin = document.getElementById('admin-login');
-            const adminDash = document.getElementById('admin-dashboard');
             
-            if (!isAdminLoggedIn) {
-                adminLogin.classList.remove('hidden');
-                adminDash.classList.add('hidden');
+            // Update Admin List
+            const adminList = document.getElementById('admin-list');
+            const adminEmpty = document.getElementById('admin-empty');
+            if (currentProjects.length === 0) {
+                adminList.innerHTML = '';
+                adminEmpty.classList.remove('hidden');
             } else {
-                adminLogin.classList.add('hidden');
-                adminDash.classList.remove('hidden');
-                
-                const adminList = document.getElementById('admin-list');
-                const adminEmpty = document.getElementById('admin-empty');
-                
-                // Show ALL projects in admin
-                if (currentProjects.length === 0) {
-                    adminList.innerHTML = '';
-                    adminEmpty.classList.remove('hidden');
-                } else {
-                    adminEmpty.classList.add('hidden');
-                    adminList.innerHTML = currentProjects.map(p => `
-                        <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                            <div class="flex-1 min-w-0 pr-4">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.courseType === 'sdgs' ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-700'}">
-                                        ${p.courseType === 'sdgs' ? 'SDGs' : '資訊'}
-                                    </span>
-                                    <p class="text-sm font-medium text-slate-900 truncate">${escapeHtml(p.title)}</p>
-                                </div>
-                                <p class="text-xs text-slate-500">${escapeHtml(p.studentName)}</p>
-                                <div class="flex gap-2 mt-1">
-                                    ${p.videoUrl ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">影片 OK</span>' : ''}
-                                    ${p.slidesUrl ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">簡報(連結)</span>' : ''}
-                                </div>
+                adminEmpty.classList.add('hidden');
+                adminList.innerHTML = currentProjects.map(p => `
+                    <li class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div class="flex-1 min-w-0 pr-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.courseType === 'sdgs' ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-700'}">${p.courseType === 'sdgs' ? 'SDGs' : '資訊'}</span>
+                                <p class="text-sm font-medium text-slate-900 truncate">${escapeHtml(p.title)}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="openModal('${p.id}', '${p.videoUrl ? 'video' : 'slides'}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium" title="查看">
-                                    <i data-lucide="eye" class="w-4 h-4"></i>
-                                </button>
-                                <button onclick="handleDelete('${p.id}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium" title="刪除">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </li>
-                    `).join('');
-                }
+                            <p class="text-xs text-slate-500">${escapeHtml(p.studentName)}</p>
+                        </div>
+                        <button onclick="handleDelete('${p.id}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </li>
+                `).join('');
             }
             lucide.createIcons();
         }
 
-        // --- 3. Initialize Firebase Safely ---
+        // --- Init ---
         try {
-            // Priority: Environment Variable > Manual Config > Empty
-            let firebaseConfig = {};
-            
-            if (typeof __firebase_config !== 'undefined') {
-                // Inside Canvas Environment
-                firebaseConfig = JSON.parse(__firebase_config);
-            } else {
-                // Outside Canvas (GitHub Pages)
-                // Check if manual config has been filled
-                const isConfigEmpty = !manualFirebaseConfig.apiKey || manualFirebaseConfig.apiKey === "";
-                
-                if (isConfigEmpty) {
-                    // Show instructional error on UI instead of just console
-                    document.getElementById('gallery-loader').innerHTML = `
-                        <div class="text-center p-6 max-w-lg mx-auto bg-red-50 rounded-xl border border-red-200">
-                            <i data-lucide="alert-triangle" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
-                            <p class="text-red-600 font-bold mb-2 text-lg">⚠️ 尚未設定資料庫連線</p>
-                            <p class="text-sm text-red-500 mb-4 leading-relaxed">此網頁目前運行於外部環境 (如 GitHub Pages)，無法自動取得資料庫設定。<br>請手動填入 Firebase API Key。</p>
-                        </div>
-                    `;
-                    updateStatus('error', '未設定 API Key');
-                    lucide.createIcons();
-                    throw new Error("Missing Manual Firebase Config on External Environment");
-                } else {
-                    firebaseConfig = manualFirebaseConfig;
-                }
-            }
+            log("初始化 Firebase...", 'info');
+            const app = initializeApp(manualFirebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            log("Firebase 初始化完成", 'success');
 
-            if (firebaseConfig.apiKey) {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
+            log("嘗試匿名登入...", 'info');
+            signInAnonymously(auth).then(() => {
+                log("✅ 匿名登入成功", 'success');
+            }).catch(e => {
+                log(`❌ 登入失敗: ${e.message}`, 'error');
+            });
 
-                // Auth
-                async function initAuth() {
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    } catch (error) {
-                        console.error("Auth Error:", error);
-                        updateStatus('error', '登入失敗');
-                    }
-                }
-                initAuth();
-
-                onAuthStateChanged(auth, (user) => {
-                    currentUser = user;
-                    if (user) {
-                        updateStatus('success', '已連線資料庫');
-                        setupRealtimeListener();
-                    } else {
-                        document.getElementById('gallery-loader').classList.add('hidden');
-                        document.getElementById('gallery-empty').classList.remove('hidden');
-                        updateStatus('error', '未登入');
-                    }
-                });
-
-                function setupRealtimeListener() {
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    log(`使用者已就緒 (UID: ${user.uid.substring(0,5)}...)`, 'info');
+                    log(`開始監聽資料路徑: /artifacts/${appId}/public/data/student_projects`, 'info');
                     const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'student_projects'));
                     onSnapshot(q, (snapshot) => {
                         const loaded = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                         loaded.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                         currentProjects = loaded;
-                        
-                        // Hide loader
                         document.getElementById('gallery-loader').classList.add('hidden');
                         document.getElementById('gallery-error').classList.add('hidden');
                         
-                        // Update UI
-                        updateStatus('success', `已同步 ${loaded.length} 筆資料`);
+                        if (loaded.length === 0) {
+                            log("✅ 讀取成功：目前資料庫是空的 (0 筆資料)", 'info');
+                        } else {
+                            log(`✅ 讀取成功：已載入 ${loaded.length} 筆資料`, 'success');
+                        }
                         renderApp();
                     }, (err) => {
-                        console.error("Data fetch error", err);
+                        console.error(err);
                         document.getElementById('gallery-loader').classList.add('hidden');
                         document.getElementById('gallery-error').classList.remove('hidden');
-                        updateStatus('error', '讀取失敗: ' + err.code);
+                        document.getElementById('gallery-error-msg').textContent = `${err.message} (Code: ${err.code})`;
+                        log(`❌ 讀取失敗: ${err.code} - 請檢查 Rules 權限`, 'error');
                     });
                 }
-            }
-
+            });
         } catch (e) {
-            console.error("Firebase Initialization Failed:", e);
-            // If error wasn't handled by the specific check above
-            if (!document.getElementById('gallery-loader').innerHTML.includes('尚未設定資料庫連線')) {
-                 document.getElementById('gallery-loader').innerHTML = `<p class="text-red-500">初始化失敗：${e.message}</p>`;
-            }
+            log(`❌ 系統錯誤: ${e.message}`, 'error');
+            document.getElementById('gallery-loader').innerHTML = `<p class="text-red-500">初始化失敗：${e.message}</p>`;
         }
 
-        // Initial Icon Render
         lucide.createIcons();
-
     </script>
 </body>
 </html>
